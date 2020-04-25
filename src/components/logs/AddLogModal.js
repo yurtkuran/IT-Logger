@@ -1,9 +1,19 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
+
+// bring in redux
+import { connect } from 'react-redux';
+
+// bring in components
+import TechSelectOptions from '../techs/TechSelectOptions';
+
+// bring in actions
+import { addLog } from '../../actions/logActions';
 
 // bring in materialize
 import M from 'materialize-css/dist/js/materialize.min.js';
 
-const AddLogModal = () => {
+const AddLogModal = ({ addLog }) => {
     const [message, setMessage] = useState('');
     const [attention, setAttention] = useState(false);
     const [tech, setTech] = useState('');
@@ -12,7 +22,16 @@ const AddLogModal = () => {
         if (message === '' || tech === '') {
             M.toast({ html: 'Please enter a message and tech' });
         } else {
-            console.log(message, tech, attention);
+            const newLog = {
+                message,
+                tech,
+                attention,
+                date: new Date(),
+            };
+
+            addLog(newLog);
+
+            M.toast({ html: `Log added by ${tech}` });
 
             // clear fields
             setMessage('');
@@ -39,9 +58,7 @@ const AddLogModal = () => {
                             <option value='' disabled>
                                 Select Technicial
                             </option>
-                            <option value='John Doe'>John Doe</option>
-                            <option value='Sam Smith'>Sam Smith</option>
-                            <option value='Sara Wilson'>Sara Wilson</option>
+                            <TechSelectOptions />
                         </select>
                     </div>
                 </div>
@@ -65,9 +82,13 @@ const AddLogModal = () => {
     );
 };
 
+AddLogModal.propTypes = {
+    addLog: PropTypes.func.isRequired,
+};
+
 const modalStyle = {
     width: '75%',
     height: '75%',
 };
 
-export default AddLogModal;
+export default connect(null, { addLog })(AddLogModal);

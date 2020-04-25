@@ -1,18 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
+
+// bring in redux
+import { connect } from 'react-redux';
+
+// bring in components
+import TechSelectOptions from '../techs/TechSelectOptions';
+
+// bring in actions
+import { updateLog, clearCurrent } from '../../actions/logActions';
 
 // bring in materialize
 import M from 'materialize-css/dist/js/materialize.min.js';
 
-const EditLogModal = () => {
+const EditLogModal = ({ current, updateLog, clearCurrent }) => {
     const [message, setMessage] = useState('');
     const [attention, setAttention] = useState(false);
     const [tech, setTech] = useState('');
 
+    useEffect(() => {
+        if (current) {
+            setMessage(current.message);
+            setAttention(current.attention);
+            setTech(current.tech);
+        }
+    }, [current]);
+
     const onSubmit = () => {
         if (message === '' || tech === '') {
             M.toast({ html: 'Please enter a message and tech' });
+            clearCurrent();
         } else {
-            console.log(message, tech, attention);
+            const updatedLog = {
+                id: current.id,
+                message,
+                tech,
+                attention,
+                date: new Date(),
+            };
+            updateLog(updatedLog);
+            M.toast({ html: `Log updated by ${tech}` });
 
             // clear fields
             setMessage('');
@@ -28,9 +55,6 @@ const EditLogModal = () => {
                 <div className='row'>
                     <div className='input-field'>
                         <input type='text' name='message' value={message} onChange={(e) => setMessage(e.target.value)} />
-                        <label htmlFor='message' className='active'>
-                            Log Message
-                        </label>
                     </div>
                 </div>
                 <div className='row'>
@@ -39,9 +63,7 @@ const EditLogModal = () => {
                             <option value='' disabled>
                                 Select Technicial
                             </option>
-                            <option value='John Doe'>John Doe</option>
-                            <option value='Sam Smith'>Sam Smith</option>
-                            <option value='Sara Wilson'>Sara Wilson</option>
+                            <TechSelectOptions />
                         </select>
                     </div>
                 </div>
@@ -70,4 +92,13 @@ const modalStyle = {
     height: '75%',
 };
 
-export default EditLogModal;
+EditLogModal.propTypes = {
+    current: PropTypes.object,
+    updateLog: PropTypes.func.isRequired,
+};
+
+const mapStatetoProps = (state) => ({
+    current: state.log.current,
+});
+
+export default connect(mapStatetoProps, { updateLog, clearCurrent })(EditLogModal);
